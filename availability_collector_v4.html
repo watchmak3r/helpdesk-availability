@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help Desk Availability Collector</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600&display=swap');
+:root {
+  --bg:#edf0f7; --surface:#fff; --surface2:#f4f6fb; --border:#dde3ef; --border2:#c6cfdf;
+  --text:#1c2235; --muted:#8d98b4; --muted2:#5b6880;
+  --accent:#3b5bdb; --accent-dim:rgba(59,91,219,.09); --accent-bdr:rgba(59,91,219,.28);
+  --green:#2f9e44; --green-dim:rgba(47,158,68,.1); --green-bdr:rgba(47,158,68,.38);
+  --gold:#d97706; --gold-dim:rgba(217,119,6,.1); --gold-bdr:rgba(217,119,6,.38);
+  --slate:#64748b; --slate-dim:rgba(100,116,139,.1); --slate-bdr:rgba(100,116,139,.3);
+  --red:#dc2626; --red-dim:rgba(220,38,38,.08);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 4px 12px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04); --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.55;min-height:100vh;}
+
+/* Header */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:15px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:50;}
+.brand h1{font-family:'Fraunces',serif;font-size:18px;font-weight:700;}
+.brand h1 em{color:var(--accent);font-style:normal;}
+.brand p{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.mode-toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px;}
+.mode-btn{font-size:12.5px;font-weight:600;padding:6px 18px;border-radius:6px;border:none;background:transparent;color:var(--muted2);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.mode-btn:hover{color:var(--text);}
+.mode-btn.on{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm);}
+.badge{background:var(--accent);color:#fff;font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle;}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.status-dot.ok{background:var(--green);}
+.status-dot.none{background:var(--muted);}
+
+/* Layout */
+.main{padding:24px 28px;max-width:1040px;margin:0 auto;}
+.sh{font-family:'Fraunces',serif;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.sh::after{content:'';flex:1;height:1px;background:var(--border);}
+.section{margin-bottom:26px;}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:20px 24px;}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);}
+
+/* Inputs */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.inp{background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;padding:9px 12px;border-radius:8px;outline:none;width:100%;transition:border-color .15s;box-shadow:var(--shadow-sm);}
+.inp:focus{border-color:var(--accent);}
+.inp::placeholder{color:var(--muted);}
+.inp-mono{font-family:monospace;font-size:12px;}
+
+.name-input{background:var(--surface);border:1.5px solid var(--border2);color:var(--text);font-family:'Fraunces',serif;font-size:16px;font-weight:600;padding:10px 14px;border-radius:8px;outline:none;width:300px;max-width:100%;box-shadow:var(--shadow-sm);transition:border-color .15s;}
+.name-input:focus{border-color:var(--accent);}
+.name-input::placeholder{color:var(--muted);font-weight:400;}
+
+/* Buttons */
+.btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:9px 22px;border-radius:8px;border:1px solid transparent;cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm);}
+.btn-p{background:var(--accent);color:#fff;}
+.btn-p:hover{background:#2f4ec0;}
+.btn-p:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+.btn-g{background:var(--surface);color:var(--muted2);border-color:var(--border2);}
+.btn-g:hover{color:var(--text);}
+.btn-s{padding:6px 14px;font-size:12px;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-add{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--accent-bdr);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.btn-add:hover{background:var(--accent-dim);}
+.btn-danger{background:var(--surface);color:var(--red);border:1px solid rgba(220,38,38,.25);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:7px;cursor:pointer;transition:all .15s;}
+.btn-danger:hover{background:var(--red-dim);}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+
+/* Info / error banners */
+.info{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 14px;font-size:12px;color:#1e40af;margin-bottom:14px;}
+.warn{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 14px;font-size:12px;color:#92400e;margin-bottom:14px;}
+.err{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--red);margin-bottom:14px;}
+.ok-bar{background:#f0fdf4;border:1px solid var(--green-bdr);border-radius:8px;padding:9px 14px;font-size:12px;color:var(--green);margin-bottom:14px;font-weight:600;}
+
+/* Share link box */
+.share-box{background:var(--surface2);border:1.5px solid var(--accent-bdr);border-radius:8px;padding:12px 14px;margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.share-url{flex:1;font-family:monospace;font-size:11.5px;color:var(--muted2);word-break:break-all;min-width:200px;}
+.copy-btn{white-space:nowrap;}
+
+/* Input mode tabs */
+.itabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:18px;}
+.itab{font-size:13px;font-weight:600;padding:8px 20px;border:none;background:transparent;color:var(--muted2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.itab:hover{color:var(--text);}
+.itab.on{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* Legend */
+.legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted2);font-weight:500;}
+.ls{width:22px;height:22px;border-radius:5px;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+
+/* Block entry */
+.block-days{display:flex;flex-direction:column;gap:8px;}
+.bday{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;}
+.bday-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;}
+.bday-name{font-family:'Fraunces',serif;font-size:13.5px;font-weight:700;}
+.bday-hrs{font-size:11.5px;color:var(--muted2);}
+.bday-body{padding:12px 16px;display:flex;flex-direction:column;gap:8px;}
+.btag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid;}
+.btag.available{background:var(--green-dim);color:var(--green);border-color:var(--green-bdr);}
+.btag.preferred{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-bdr);}
+.btag.unavailable{background:var(--slate-dim);color:var(--slate);border-color:var(--slate-bdr);}
+.rm{background:none;border:none;cursor:pointer;font-size:15px;color:inherit;opacity:.5;line-height:1;padding:0 0 0 3px;transition:opacity .1s;}
+.rm:hover{opacity:1;}
+.bform{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--surface2);border:1px dashed var(--border2);border-radius:8px;}
+.bform label{font-size:11px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.t-in{background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;border-radius:6px;outline:none;width:130px;transition:border-color .15s;}
+.t-in:focus{border-color:var(--accent);}
+.sel{background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;border-radius:6px;outline:none;cursor:pointer;}
+.sel:focus{border-color:var(--accent);}
+.empty-day{font-size:12px;color:var(--muted);font-style:italic;padding:2px 0;}
+
+/* Grid */
+.grid-scroll{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);background:var(--surface);margin-bottom:16px;}
+.avt{border-collapse:collapse;min-width:480px;width:100%;}
+.avt thead th{font-family:'Fraunces',serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted2);padding:10px 6px;background:var(--surface2);border-bottom:2px solid var(--border);text-align:center;white-space:nowrap;}
+.avt thead th:first-child{text-align:left;padding-left:14px;width:80px;color:var(--accent);}
+.avt tbody tr{border-bottom:1px solid var(--border);}
+.avt tbody tr:last-child{border-bottom:none;}
+.avt tbody tr.hr td{border-top:2px solid var(--border2);}
+.avt tbody tr.hh td{border-top:1px dashed var(--border);}
+.tcol{font-size:11px;color:var(--accent);padding:0 14px;white-space:nowrap;background:var(--surface2);font-weight:600;}
+.acell{padding:2px 3px;text-align:center;border-right:1px solid var(--border);}
+.acell:last-child{border-right:none;}
+.acell.cl{background:var(--bg);}
+.cbtn{width:100%;min-width:70px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:all .1s;user-select:none;color:var(--muted);}
+.cbtn:hover{filter:brightness(.96);}
+.cbtn.available{background:var(--green-dim);border-color:var(--green-bdr);color:var(--green);}
+.cbtn.preferred{background:var(--gold-dim);border-color:var(--gold-bdr);color:var(--gold);}
+.cbtn.unavailable{background:var(--slate-dim);border-color:var(--slate-bdr);color:var(--slate);}
+
+/* Success */
+.sbox{background:#f0fdf4;border:1.5px solid var(--green-bdr);border-radius:var(--r);padding:28px 24px;text-align:center;box-shadow:var(--shadow-sm);}
+.sbox h2{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--green);margin-bottom:6px;}
+.sbox p{font-size:13px;color:var(--muted2);}
+
+/* Admin tabs */
+.atabs{display:flex;gap:4px;margin-bottom:22px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:4px;box-shadow:var(--shadow-sm);width:fit-content;flex-wrap:wrap;}
+.atab{font-size:12.5px;font-weight:600;padding:7px 16px;border-radius:7px;border:none;background:transparent;color:var(--muted2);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.atab:hover{color:var(--text);}
+.atab.on{background:var(--accent);color:#fff;box-shadow:var(--shadow-sm);}
+
+/* Responses */
+.rlist{display:flex;flex-direction:column;gap:6px;}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+.rname{font-family:'Fraunces',serif;font-size:14px;font-weight:700;flex:1;min-width:120px;}
+.rpills{display:flex;gap:5px;flex-wrap:wrap;}
+.rp{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;}
+.rp.av{background:var(--green-dim);color:var(--green);border-color:var(--green-bdr);}
+.rp.pr{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-bdr);}
+.rp.un{background:var(--slate-dim);color:var(--slate);border-color:var(--slate-bdr);}
+.rmeta{font-size:11px;color:var(--muted);white-space:nowrap;}
+.empty-s{padding:36px;text-align:center;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);}
+.empty-s strong{display:block;font-family:'Fraunces',serif;font-size:15px;color:var(--muted2);margin-bottom:6px;}
+.ebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.einfo{font-size:12px;color:var(--muted2);}
+
+/* Heatmap */
+.hmap-scroll{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);background:var(--surface);}
+.hmt{border-collapse:collapse;min-width:480px;width:100%;}
+.hmt thead th{font-family:'Fraunces',serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted2);padding:10px 6px;background:var(--surface2);border-bottom:2px solid var(--border);text-align:center;white-space:nowrap;}
+.hmt thead th:first-child{text-align:left;padding-left:14px;color:var(--accent);}
+.hmt tbody tr{border-bottom:1px solid var(--border);}
+.hmt tbody tr:last-child{border-bottom:none;}
+.hmt tbody tr.hr td{border-top:2px solid var(--border2);}
+.htcol{font-size:11px;color:var(--accent);padding:0 14px;white-space:nowrap;font-weight:600;background:var(--surface2);}
+.hcell{padding:2px 3px;text-align:center;border-right:1px solid var(--border);}
+.hcell:last-child{border-right:none;}
+.hcell.cl{background:var(--bg);}
+.hpip{height:24px;min-width:70px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+
+/* Config hours */
+.hgrid{display:flex;flex-direction:column;gap:6px;}
+.hrow{display:grid;grid-template-columns:100px 1fr;align-items:center;gap:12px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-sm);}
+.hrow.off{opacity:.4;}
+.dtog{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.tog{width:32px;height:18px;border-radius:9px;background:var(--border2);position:relative;transition:background .2s;flex-shrink:0;}
+.tog.on{background:var(--green);}
+.tog::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:white;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tog.on::after{left:16px;}
+.dlbl{font-family:'Fraunces',serif;font-size:13px;font-weight:700;}
+.tpair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.tpair label{font-size:11px;color:var(--muted2);font-weight:600;text-transform:uppercase;width:38px;}
+input[type="time"]{background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;border-radius:6px;outline:none;width:120px;transition:border-color .15s;}
+input[type="time"]:focus{border-color:var(--accent);}
+.tamt{font-size:11px;color:var(--muted);min-width:68px;}
+
+/* Spinner */
+.spin-wrap{display:flex;align-items:center;gap:10px;padding:40px;justify-content:center;color:var(--muted2);font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+.spin{width:22px;height:22px;border:2.5px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:8px;box-shadow:var(--shadow);z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ══════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════ */
+const DAYS=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const DAY_S={monday:'Mon',tuesday:'Tue',wednesday:'Wed',thursday:'Thu',friday:'Fri',saturday:'Sat',sunday:'Sun'};
+const DAY_F={monday:'Monday',tuesday:'Tuesday',wednesday:'Wednesday',thursday:'Thursday',friday:'Friday',saturday:'Saturday',sunday:'Sunday'};
+const STATES=['','available','preferred','unavailable'];
+const ICONS={'':'·',available:'✓',preferred:'★',unavailable:'✕'};
+const LABELS={'':'Not set',available:'Available',preferred:'Preferred',unavailable:"Can't work"};
+const SS_BASE='https://api.smartsheet.com/2.0';
+
+const DEFAULT_CFG={hours:{
+  monday:   {on:true, open:'07:30',close:'20:00'},
+  tuesday:  {on:true, open:'07:30',close:'20:00'},
+  wednesday:{on:true, open:'07:30',close:'20:00'},
+  thursday: {on:true, open:'07:30',close:'20:00'},
+  friday:   {on:true, open:'07:30',close:'18:00'},
+  saturday: {on:false,open:'10:00',close:'16:00'},
+  sunday:   {on:false,open:'10:00',close:'14:00'},
+}};
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let blkId=1;
+const S={
+  view:'student',        // 'student' | 'admin'
+  adminTab:'responses',  // 'responses' | 'heatmap' | 'config' | 'setup'
+  inputMode:'blocks',
+  // Credentials
+  token:'',
+  sheetId:'',
+  colMap:{},             // colTitle -> colId
+  // Student form
+  name:'',
+  avail:{},
+  blocks:[],
+  adding:{},
+  newBlk:{},
+  submitted:false,
+  submitting:false,
+  submitErr:null,
+  // Admin
+  ssRows:[],             // raw Smartsheet rows
+  responses:{},          // name -> {name,avail,submittedAt,rowId}
+  loading:false,
+  loadErr:null,
+  // Config
+  cfg:dc(DEFAULT_CFG),
+  // Setup form fields
+  setupToken:'',
+  setupSheetName:'Help Desk Availability',
+  setupNewSheet:true,
+  setupSheetId:'',
+  setupWorking:false,
+  setupErr:null,
+  setupOk:null,
+  shareUrl:'',
+};
+
+/* ══════════════════════════════════════════
+   PERSIST  (localStorage for admin config)
+══════════════════════════════════════════ */
+const LS_CREDS='hd_ss_creds';
+const LS_CFG  ='hd_ss_cfg';
+
+function saveCredsLS(){try{localStorage.setItem(LS_CREDS,JSON.stringify({token:S.token,sheetId:S.sheetId,colMap:S.colMap}));}catch(e){}}
+function saveCfgLS(){try{localStorage.setItem(LS_CFG,JSON.stringify(S.cfg));}catch(e){}}
+
+function loadFromLS(){
+  try{const c=localStorage.getItem(LS_CREDS);if(c){const o=JSON.parse(c);S.token=o.token||'';S.sheetId=o.sheetId||'';S.colMap=o.colMap||{};}}catch(e){}
+  try{const c=localStorage.getItem(LS_CFG);if(c)S.cfg=JSON.parse(c);}catch(e){}
+}
+
+/* URL hash encodes just what students need: token + sheetId + hours config */
+function buildShareUrl(){
+  const payload={token:S.token,sheetId:S.sheetId,cfg:S.cfg};
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  return location.href.split('#')[0]+'#c='+encoded;
+}
+function loadFromHash(){
+  try{
+    const h=location.hash;
+    if(!h.startsWith('#c='))return false;
+    const raw=decodeURIComponent(escape(atob(h.slice(3))));
+    const o=JSON.parse(raw);
+    if(o.token)S.token=o.token;
+    if(o.sheetId)S.sheetId=o.sheetId;
+    if(o.cfg)S.cfg=o.cfg;
+    return !!(S.token&&S.sheetId);
+  }catch(e){return false;}
+}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function dc(o){return JSON.parse(JSON.stringify(o));}
+function parseT(s){if(!s)return 0;const[h,m]=s.split(':').map(Number);return h*60+(m||0);}
+function fmt24(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function fmtAP(m){const h=Math.floor(m/60),mn=m%60;return(h%12||12)+':'+String(mn).padStart(2,'0')+' '+(h>=12?'PM':'AM');}
+function tAP(s){return s?fmtAP(parseT(s)):'';}
+function slotKey(d,m){return d+'_'+fmt24(m);}
+function activeDays(){return DAYS.filter(d=>S.cfg.hours[d].on);}
+function getSlots(){
+  const days=activeDays();
+  if(!days.length)return{slots:[],days:[]};
+  const opens=days.map(d=>parseT(S.cfg.hours[d].open));
+  const closes=days.map(d=>parseT(S.cfg.hours[d].close));
+  const minT=Math.min(...opens),maxT=Math.max(...closes);
+  const slots=[];for(let t=minT;t<maxT;t+=15)slots.push(t);
+  return{slots,days};
+}
+function applyBlocks(){
+  S.avail={};
+  for(const b of S.blocks){
+    const s=parseT(b.start),e=parseT(b.end);
+    for(let t=s;t<e;t+=15)S.avail[slotKey(b.day,t)]=b.status;
+  }
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escCSV(s){s=String(s||'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+
+/* Summarize a day's avail into readable text for Smartsheet */
+function summarizeDay(day,avail){
+  const h=S.cfg.hours[day];
+  if(!h||!h.on)return'';
+  const open=parseT(h.open),close=parseT(h.close);
+  const lines=[];let rS=null,rSt=null;
+  for(let t=open;t<=close;t+=15){
+    const st=avail[slotKey(day,t)]||'';
+    if(st!==rSt){
+      if(rS!==null&&rSt)lines.push(ICONS[rSt]+' '+fmtAP(rS)+' – '+fmtAP(t));
+      rS=t;rSt=st;
+    }
+  }
+  if(rS!==null&&rSt)lines.push(ICONS[rSt]+' '+fmtAP(rS)+' – '+fmtAP(close));
+  return lines.join('\n')||'(none)';
+}
+
+function countSt(name){
+  const v=Object.values(S.responses[name]?.avail||{});
+  return{a:v.filter(x=>x==='available').length,p:v.filter(x=>x==='preferred').length,u:v.filter(x=>x==='unavailable').length};
+}
+function fmtDt(iso){try{return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return iso;}}
+
+let toastT;
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+
+function isConfigured(){return!!(S.token&&S.sheetId);}
+
+/* ══════════════════════════════════════════
+   SMARTSHEET API
+══════════════════════════════════════════ */
+async function ssReq(method,path,body){
+  const res=await fetch(SS_BASE+path,{
+    method,
+    headers:{'Authorization':'Bearer '+S.token,'Content-Type':'application/json'},
+    ...(body?{body:JSON.stringify(body)}:{})
+  });
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.message||'Smartsheet error ('+res.status+')');
+  return data;
+}
+
+/* Create sheet with columns for each day + raw JSON */
+async function ssCreateSheet(name){
+  const cols=[
+    {title:'Name',type:'TEXT_NUMBER',primary:true},
+    {title:'Submitted At',type:'TEXT_NUMBER'},
+    ...DAYS.map(d=>({title:DAY_F[d],type:'TEXT_NUMBER'})),
+    {title:'Raw JSON',type:'TEXT_NUMBER'},
+  ];
+  const res=await ssReq('POST','/sheets',{name,columns:cols});
+  return res.result;
+}
+
+/* Load column map from sheet */
+async function ssLoadColMap(){
+  const sheet=await ssReq('GET','/sheets/'+S.sheetId+'?pageSize=1');
+  const map={};
+  for(const c of sheet.columns)map[c.title]=c.id;
+  S.colMap=map;
+  saveCredsLS();
+  return map;
+}
+
+/* Load all responses from sheet */
+async function ssLoadResponses(){
+  const sheet=await ssReq('GET','/sheets/'+S.sheetId);
+  if(!S.colMap||!Object.keys(S.colMap).length)await ssLoadColMap();
+  S.ssRows=sheet.rows||[];
+  S.responses={};
+  for(const row of S.ssRows){
+    const get=title=>{const c=row.cells?.find(x=>x.columnId===S.colMap[title]);return c?.displayValue||c?.value||'';};
+    const name=get('Name');if(!name)continue;
+    let avail={};
+    try{const raw=get('Raw JSON');if(raw)avail=JSON.parse(raw);}catch(e){}
+    S.responses[name]={name,avail,submittedAt:get('Submitted At'),rowId:row.id};
+  }
+}
+
+/* Submit or update a row */
+async function ssSubmit(){
+  if(!S.colMap||!Object.keys(S.colMap).length)await ssLoadColMap();
+  const name=S.name.trim();
+  const cells=[
+    {columnId:S.colMap['Name'],value:name},
+    {columnId:S.colMap['Submitted At'],value:new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})},
+    ...DAYS.map(d=>({columnId:S.colMap[DAY_F[d]],value:summarizeDay(d,S.avail)})),
+    {columnId:S.colMap['Raw JSON'],value:JSON.stringify(S.avail)},
+  ].filter(c=>c.columnId);
+
+  // Check if row for this name exists → update, else insert
+  await ssLoadResponses();
+  const existing=Object.values(S.responses).find(r=>r.name===name);
+  if(existing?.rowId){
+    await ssReq('PUT','/sheets/'+S.sheetId+'/rows',[{id:existing.rowId,cells}]);
+  }else{
+    await ssReq('POST','/sheets/'+S.sheetId+'/rows',[{toBottom:true,cells}]);
+  }
+}
+
+/* Delete a row */
+async function ssDeleteRow(rowId){
+  await ssReq('DELETE','/sheets/'+S.sheetId+'/rows?rowIds='+rowId);
+}
+
+/* ══════════════════════════════════════════
+   EVENT HANDLERS
+══════════════════════════════════════════ */
+window.gotoView =v=>{S.view=v;if(v==='admin'&&isConfigured())loadAdminData();render();};
+window.gotoATab =t=>{S.adminTab=t;if(t==='responses'&&isConfigured())loadAdminData();render();};
+window.gotoIMode=m=>{S.inputMode=m;render();};
+window.onName   =v=>{S.name=v;};
+
+window.cycleCell=key=>{
+  const cur=S.avail[key]||'';
+  S.avail[key]=STATES[(STATES.indexOf(cur)+1)%STATES.length];
+  const btn=document.querySelector('[data-k="'+key+'"]');
+  if(btn){btn.className='cbtn '+(S.avail[key]||'');btn.textContent=ICONS[S.avail[key]];btn.title=LABELS[S.avail[key]];}
+};
+
+window.openAddBlock=day=>{
+  if(!S.newBlk[day])S.newBlk[day]={start:S.cfg.hours[day].open,end:S.cfg.hours[day].close,status:'available'};
+  S.adding[day]=true;render();
+};
+window.cancelAddBlock=day=>{S.adding[day]=false;render();};
+window.setNB=(day,f,v)=>{if(!S.newBlk[day])S.newBlk[day]={start:'09:00',end:'17:00',status:'available'};S.newBlk[day][f]=v;};
+window.confirmAddBlock=day=>{
+  const nb=S.newBlk[day];
+  if(!nb)return;
+  if(parseT(nb.start)>=parseT(nb.end)){alert('End time must be after start time.');return;}
+  S.blocks.push({id:blkId++,day,start:nb.start,end:nb.end,status:nb.status});
+  S.adding[day]=false;S.newBlk[day]=null;applyBlocks();render();
+};
+window.removeBlock=id=>{S.blocks=S.blocks.filter(b=>b.id!==id);applyBlocks();render();};
+
+window.submitAvail=async()=>{
+  const name=S.name.trim();
+  if(!name){alert('Please enter your name.');return;}
+  if(!isConfigured()){alert('This form is not connected to a Smartsheet. Please contact your administrator.');return;}
+  S.submitting=true;S.submitErr=null;render();
+  try{
+    await ssSubmit();
+    S.submitted=true;S.submitting=false;render();
+    toast('Saved to Smartsheet!');
+  }catch(e){
+    S.submitting=false;S.submitErr=e.message;render();
+  }
+};
+window.resetForm=()=>{S.name='';S.avail={};S.blocks=[];S.adding={};S.newBlk={};S.submitted=false;S.submitErr=null;render();};
+
+window.deleteResp=async btn=>{
+  const name=btn.dataset.name;
+  const rowId=S.responses[name]?.rowId;
+  if(!confirm('Delete '+name+"'s submission?"))return;
+  try{
+    if(rowId)await ssDeleteRow(rowId);
+    delete S.responses[name];
+    render();toast('Removed '+name);
+  }catch(e){alert('Error: '+e.message);}
+};
+
+window.toggleDay=d=>{S.cfg.hours[d].on=!S.cfg.hours[d].on;saveCfgLS();render();};
+window.setOpen  =(d,v)=>{S.cfg.hours[d].open=v;saveCfgLS();render();};
+window.setClose =(d,v)=>{S.cfg.hours[d].close=v;saveCfgLS();render();};
+
+/* Setup */
+window.setSetupToken=v=>{S.setupToken=v;};
+window.setSetupName =v=>{S.setupSheetName=v;};
+window.setSetupMode =b=>{S.setupNewSheet=b;render();};
+window.setSetupId   =v=>{S.setupSheetId=v;};
+
+window.runSetup=async()=>{
+  const token=S.setupToken.trim();
+  if(!token){alert('Please enter your API token.');return;}
+  S.setupWorking=true;S.setupErr=null;S.setupOk=null;render();
+  S.token=token;
+  try{
+    if(S.setupNewSheet){
+      const name=S.setupSheetName.trim()||'Help Desk Availability';
+      const result=await ssCreateSheet(name);
+      S.sheetId=String(result.id);
+      await ssLoadColMap();
+      S.setupOk='Sheet "'+name+'" created. Sheet ID: '+S.sheetId;
+    }else{
+      S.sheetId=S.setupSheetId.trim();
+      await ssLoadColMap();
+      S.setupOk='Connected to existing sheet (ID: '+S.sheetId+')';
+    }
+    saveCredsLS();
+    S.shareUrl=buildShareUrl();
+    S.setupWorking=false;
+    render();toast('Connected!');
+  }catch(e){
+    S.setupWorking=false;S.setupErr=e.message;S.token='';S.sheetId='';render();
+  }
+};
+
+window.copyShareUrl=()=>{
+  S.shareUrl=buildShareUrl();
+  navigator.clipboard.writeText(S.shareUrl).then(()=>toast('Share link copied!')).catch(()=>{
+    prompt('Copy this link:',S.shareUrl);
+  });
+};
+window.refreshShareUrl=()=>{S.shareUrl=buildShareUrl();render();};
+
+window.exportCSV=()=>{
+  const{slots,days}=getSlots();
+  const names=Object.keys(S.responses);
+  if(!names.length)return;
+  const hdrs=['Student',...slots.flatMap(t=>days.map(d=>DAY_S[d]+' '+fmtAP(t)))];
+  const rows=names.map(n=>{
+    const av=S.responses[n].avail||{};
+    return[escCSV(n),...slots.flatMap(t=>days.map(d=>{const v=av[slotKey(d,t)]||'';return v==='available'?'A':v==='preferred'?'P':v==='unavailable'?'U':'';}))];
+  });
+  dl([hdrs,...rows].map(r=>r.join(',')).join('\n'),'availability');
+};
+window.exportHeatmap=()=>{
+  const{slots,days}=getSlots();
+  const names=Object.keys(S.responses);
+  if(!names.length)return;
+  const hdrs=['Time',...days.map(d=>DAY_F[d])];
+  const rows=slots.map(t=>{
+    const row=[fmtAP(t)];
+    for(const d of days){
+      const h=S.cfg.hours[d],inW=parseT(h.open)<=t&&t<parseT(h.close);
+      if(!inW){row.push('closed');continue;}
+      const key=slotKey(d,t);
+      const a=names.filter(n=>S.responses[n]?.avail?.[key]==='available').length;
+      const p=names.filter(n=>S.responses[n]?.avail?.[key]==='preferred').length;
+      const u=names.filter(n=>S.responses[n]?.avail?.[key]==='unavailable').length;
+      row.push(a+'A/'+p+'P/'+u+'U');
+    }
+    return row;
+  });
+  dl([hdrs,...rows].map(r=>r.join(',')).join('\n'),'heatmap');
+};
+function dl(csv,name){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name+'_'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
+
+async function loadAdminData(){
+  if(!isConfigured())return;
+  S.loading=true;S.loadErr=null;render();
+  try{await ssLoadResponses();S.loading=false;render();}
+  catch(e){S.loading=false;S.loadErr=e.message;render();}
+}
+
+/* ══════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════ */
+function render(){document.getElementById('app').innerHTML=buildApp();}
+
+function buildApp(){
+  const rc=Object.keys(S.responses).length;
+  const configured=isConfigured();
+  return`
+<div class="hdr">
+  <div class="brand">
+    <h1>Availability <em>Collector</em></h1>
+    <p>Help Desk · Adelphi University IT</p>
+  </div>
+  <div class="hdr-right">
+    <span style="font-size:12px;color:var(--muted2)">
+      <span class="status-dot ${configured?'ok':'none'}"></span>
+      ${configured?'Connected to Smartsheet':'Not connected'}
+    </span>
+    <div class="mode-toggle">
+      <button class="mode-btn ${S.view==='student'?'on':''}" onclick="gotoView('student')">My Availability</button>
+      <button class="mode-btn ${S.view==='admin'?'on':''}" onclick="gotoView('admin')">
+        Admin${rc?'<span class="badge">'+rc+'</span>':''}
+      </button>
+    </div>
+  </div>
+</div>
+<div class="main">${S.view==='student'?buildStudent():buildAdmin()}</div>`;
+}
+
+/* ── Student ──────────────────────────────────────────────── */
+function buildStudent(){
+  if(S.submitted)return buildSuccess();
+  const{slots,days}=getSlots();
+  if(!days.length)return'<div class="empty-s"><strong>No days configured</strong>Contact your administrator.</div>';
+  return`
+<div class="section">
+  <div class="sh">Your Name</div>
+  <div style="margin-bottom:22px">
+    <input class="name-input" type="text" placeholder="First Last" value="${esc(S.name)}" oninput="onName(this.value)" autocomplete="name">
+  </div>
+</div>
+<div class="section">
+  <div class="sh">Weekly Availability</div>
+  <div class="legend">
+    <div class="li"><div class="ls" style="background:var(--green-dim);border:1px solid var(--green-bdr);color:var(--green)">✓</div>Available — can work</div>
+    <div class="li"><div class="ls" style="background:var(--gold-dim);border:1px solid var(--gold-bdr);color:var(--gold)">★</div>Preferred — want to work</div>
+    <div class="li"><div class="ls" style="background:var(--slate-dim);border:1px solid var(--slate-bdr);color:var(--slate)">✕</div>Can't work</div>
+  </div>
+  <div class="itabs">
+    <button class="itab ${S.inputMode==='blocks'?'on':''}" onclick="gotoIMode('blocks')">📋 Enter by Time Blocks</button>
+    <button class="itab ${S.inputMode==='grid' ?'on':''}" onclick="gotoIMode('grid')">🗓 Fine-Tune on Grid</button>
+  </div>
+  ${S.inputMode==='blocks'?buildBlockEntry(days):buildGrid(slots,days)}
+</div>
+${S.submitErr?`<div class="err">⚠ ${esc(S.submitErr)}</div>`:''}
+<div class="btn-row">
+  <button class="btn btn-p" onclick="submitAvail()" ${!S.name.trim()||S.submitting?'disabled':''}>
+    ${S.submitting?'<span style="opacity:.7">Saving…</span>':'Submit My Availability'}
+  </button>
+  <span style="font-size:12px;color:var(--muted2)">You can resubmit anytime to update.</span>
+</div>`;
+}
+
+function buildBlockEntry(days){
+  return`
+<div class="info">Add time blocks per day — each block fills all 15-minute slots in that range. Switch to the Grid tab to fine-tune individual slots.</div>
+<div class="block-days">
+${days.map(d=>{
+  const h=S.cfg.hours[d];
+  const db=S.blocks.filter(b=>b.day===d);
+  const isAdding=S.adding[d]||false;
+  const nb=S.newBlk[d]||{start:h.open,end:h.close,status:'available'};
+  return`<div class="bday">
+  <div class="bday-hd">
+    <span class="bday-name">${DAY_F[d]}</span>
+    <span class="bday-hrs">${tAP(h.open)} – ${tAP(h.close)}</span>
+  </div>
+  <div class="bday-body">
+    ${db.length===0&&!isAdding?'<span class="empty-day">No blocks added yet</span>':''}
+    ${db.map(b=>`<div><span class="btag ${b.status}">${ICONS[b.status]} ${tAP(b.start)} – ${tAP(b.end)} · ${LABELS[b.status]}<button class="rm" onclick="removeBlock(${b.id})">×</button></span></div>`).join('')}
+    ${isAdding?`
+    <div class="bform">
+      <label>From</label>
+      <input class="t-in" type="time" value="${esc(nb.start)}" onchange="setNB('${d}','start',this.value)">
+      <span style="color:var(--muted);font-size:12px">to</span>
+      <input class="t-in" type="time" value="${esc(nb.end)}" onchange="setNB('${d}','end',this.value)">
+      <select class="sel" onchange="setNB('${d}','status',this.value)">
+        <option value="available"   ${nb.status==='available'  ?'selected':''}>✓ Available</option>
+        <option value="preferred"   ${nb.status==='preferred'  ?'selected':''}>★ Preferred</option>
+        <option value="unavailable" ${nb.status==='unavailable'?'selected':''}>✕ Can't Work</option>
+      </select>
+      <button class="btn btn-p btn-s" onclick="confirmAddBlock('${d}')">Add</button>
+      <button class="btn btn-g btn-s" onclick="cancelAddBlock('${d}')">Cancel</button>
+    </div>`:`<button class="btn-add" onclick="openAddBlock('${d}')">＋ Add block</button>`}
+  </div>
+</div>`;
+}).join('')}
+</div>`;
+}
+
+function buildGrid(slots,days){
+  return`
+<div class="info">Click any cell to cycle: · → ✓ Available → ★ Preferred → ✕ Can't work → ·. Blocks entered above are already reflected here.</div>
+<div class="grid-scroll">
+<table class="avt">
+  <thead><tr>
+    <th>Time</th>
+    ${days.map(d=>`<th>${DAY_S[d]}<br><span style="font-weight:500;font-size:10px;color:var(--muted)">${tAP(parseT(S.cfg.hours[d].open))}–${tAP(parseT(S.cfg.hours[d].close))}</span></th>`).join('')}
+  </tr></thead>
+  <tbody>
+  ${slots.map(t=>{
+    const cls=t%60===0?'hr':t%30===0?'hh':'';
+    return`<tr class="${cls}">
+    <td class="tcol">${t%60===0?fmtAP(t):''}</td>
+    ${days.map(d=>{
+      const h=S.cfg.hours[d],inW=parseT(h.open)<=t&&t<parseT(h.close);
+      if(!inW)return'<td class="acell cl"></td>';
+      const key=slotKey(d,t),val=S.avail[key]||'';
+      return`<td class="acell"><button class="cbtn ${val}" data-k="${key}" onclick="cycleCell('${key}')" title="${fmtAP(t)} — ${LABELS[val]}">${ICONS[val]}</button></td>`;
+    }).join('')}
+    </tr>`;
+  }).join('')}
+  </tbody>
+</table>
+</div>`;
+}
+
+function buildSuccess(){
+  const c=countSt(S.name.trim());
+  return`
+<div class="sbox">
+  <h2>✓ Submitted!</h2>
+  <p style="margin-top:6px">Thanks, <strong style="color:var(--green)">${esc(S.name)}</strong>. Your availability has been saved to Smartsheet.</p>
+  <p style="margin-top:8px">
+    <span style="color:var(--green);font-weight:600">${c.a} available</span> &nbsp;·&nbsp;
+    <span style="color:var(--gold);font-weight:600">${c.p} preferred</span> &nbsp;·&nbsp;
+    <span style="color:var(--slate);font-weight:600">${c.u} can't work</span>
+  </p>
+  <button class="btn btn-g" style="margin-top:20px" onclick="resetForm()">Submit for another person</button>
+</div>`;
+}
+
+/* ── Admin ──────────────────────────────────────────────── */
+function buildAdmin(){
+  return`
+<div class="atabs">
+  <button class="atab ${S.adminTab==='responses'?'on':''}" onclick="gotoATab('responses')">Responses (${Object.keys(S.responses).length})</button>
+  <button class="atab ${S.adminTab==='heatmap'  ?'on':''}" onclick="gotoATab('heatmap')">Heatmap</button>
+  <button class="atab ${S.adminTab==='config'   ?'on':''}" onclick="gotoATab('config')">Hours Config</button>
+  <button class="atab ${S.adminTab==='setup'    ?'on':''}" onclick="gotoATab('setup')">⚙ Setup &amp; Share</button>
+</div>
+${S.adminTab==='responses'?buildResponses():''}
+${S.adminTab==='heatmap'  ?buildHeatmap()  :''}
+${S.adminTab==='config'   ?buildCfg()      :''}
+${S.adminTab==='setup'    ?buildSetup()    :''}`;
+}
+
+function buildResponses(){
+  if(S.loading)return'<div class="spin-wrap"><div class="spin"></div>Loading from Smartsheet…</div>';
+  if(S.loadErr)return`<div class="err">⚠ ${esc(S.loadErr)}</div><button class="btn btn-g" onclick="loadAdminData()">Retry</button>`;
+  const names=Object.keys(S.responses);
+  const configured=isConfigured();
+  return`
+<div class="ebar">
+  <button class="btn btn-g btn-sm" onclick="loadAdminData()" ${!configured?'disabled':''}>↻ Refresh</button>
+  <button class="btn btn-g btn-sm" onclick="exportCSV()" ${!names.length?'disabled':''}>↓ Export CSV</button>
+  <span class="einfo">A = Available · P = Preferred · U = Can't Work</span>
+</div>
+${!configured?'<div class="warn">⚠ Not connected to Smartsheet. Go to Setup &amp; Share to configure.</div>':''}
+${!names.length?`<div class="empty-s"><strong>No submissions yet</strong>${configured?'Share the link with your students to collect availability.':'Set up Smartsheet connection first.'}</div>`:`
+<div class="rlist">
+${names.map(n=>{
+  const c=countSt(n);
+  return`<div class="rcard">
+  <div class="rname">${esc(n)}</div>
+  <div class="rpills">
+    <span class="rp av">${c.a} avail</span>
+    <span class="rp pr">${c.p} pref</span>
+    <span class="rp un">${c.u} no</span>
+  </div>
+  <div class="rmeta">${fmtDt(S.responses[n].submittedAt)}</div>
+  <button class="btn-danger" data-name="${esc(n)}" onclick="deleteResp(this)">Remove</button>
+</div>`;
+}).join('')}
+</div>`}`;
+}
+
+function buildHeatmap(){
+  if(S.loading)return'<div class="spin-wrap"><div class="spin"></div>Loading…</div>';
+  const{slots,days}=getSlots();
+  const names=Object.keys(S.responses),total=names.length;
+  return`
+<div class="ebar">
+  <button class="btn btn-g btn-sm" onclick="loadAdminData()">↻ Refresh</button>
+  <button class="btn btn-g btn-sm" onclick="exportHeatmap()" ${!total?'disabled':''}>↓ Export CSV</button>
+  <span class="einfo">${total?total+' response'+(total!==1?'s':''):'No responses yet'}</span>
+</div>
+${!total?'<div class="empty-s"><strong>No data yet</strong>Heatmap will appear after students submit.</div>':`
+<div class="hmap-scroll">
+<table class="hmt">
+  <thead><tr>
+    <th>Time</th>
+    ${days.map(d=>`<th>${DAY_S[d]}<br><span style="font-weight:500;font-size:10px;color:var(--muted)">${tAP(parseT(S.cfg.hours[d].open))}–${tAP(parseT(S.cfg.hours[d].close))}</span></th>`).join('')}
+  </tr></thead>
+  <tbody>
+  ${slots.map(t=>{
+    const show=t%60===0,cls=t%60===0?'hr':'';
+    return`<tr class="${cls}">
+    <td class="htcol">${show?fmtAP(t):''}</td>
+    ${days.map(d=>{
+      const h=S.cfg.hours[d],inW=parseT(h.open)<=t&&t<parseT(h.close);
+      if(!inW)return'<td class="hcell cl"><div class="hpip" style="min-width:70px"></div></td>';
+      const key=slotKey(d,t);
+      const av=names.filter(n=>S.responses[n]?.avail?.[key]==='available').length;
+      const pr=names.filter(n=>S.responses[n]?.avail?.[key]==='preferred').length;
+      const combined=av+pr,pct=combined/total;
+      const bg=pct===0?'transparent':pr>av?`rgba(217,119,6,${.08+pct*.45})`:`rgba(47,158,68,${.07+pct*.48})`;
+      const col=pct===0?'var(--muted)':pr>av?'var(--gold)':'var(--green)';
+      const lbl=combined===0?'—':combined+(pr>0?` <span style="font-size:9px;opacity:.7">(${pr}★)</span>`:'');
+      return`<td class="hcell"><div class="hpip" style="background:${bg};color:${col};min-width:70px" title="${av} avail, ${pr} pref / ${total} total">${lbl}</div></td>`;
+    }).join('')}
+    </tr>`;
+  }).join('')}
+  </tbody>
+</table>
+</div>`}`;
+}
+
+function buildCfg(){
+  return`
+<div class="info">Changes save automatically and are included in the share link you generate.</div>
+<div class="hgrid">
+${DAYS.map(d=>{
+  const h=S.cfg.hours[d];
+  return`<div class="hrow ${h.on?'':'off'}">
+  <label class="dtog" onclick="toggleDay('${d}')">
+    <div class="tog ${h.on?'on':''}"></div>
+    <span class="dlbl">${DAY_S[d]}</span>
+  </label>
+  <div class="tpair" style="${h.on?'':'opacity:.3;pointer-events:none'}">
+    <label>Open</label>
+    <input type="time" value="${h.open}" onchange="setOpen('${d}',this.value)">
+    <span class="tamt">${tAP(h.open)}</span>
+    <label style="margin-left:8px">Close</label>
+    <input type="time" value="${h.close}" onchange="setClose('${d}',this.value)">
+    <span class="tamt">${tAP(h.close)}</span>
+  </div>
+</div>`;
+}).join('')}
+</div>`;
+}
+
+function buildSetup(){
+  const configured=isConfigured();
+  return`
+${configured?`<div class="ok-bar">✓ Connected — Sheet ID: ${esc(S.sheetId)}</div>`:''}
+${S.setupErr?`<div class="err">⚠ ${esc(S.setupErr)}</div>`:''}
+${S.setupOk?`<div class="ok-bar">✓ ${esc(S.setupOk)}</div>`:''}
+
+<div class="card" style="margin-bottom:20px">
+  <div class="sh" style="margin-bottom:16px">Smartsheet Connection</div>
+
+  <div class="field">
+    <label>Smartsheet API Token</label>
+    <input class="inp inp-mono" type="password" placeholder="Paste your API token here…"
+      value="${esc(S.setupToken||S.token)}" oninput="setSetupToken(this.value)">
+    <div style="font-size:11.5px;color:var(--muted2);margin-top:5px">
+      Get yours at <strong>smartsheet.com → Account → Personal Settings → API Access</strong>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Sheet</label>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn ${S.setupNewSheet?'btn-p':'btn-g'} btn-sm" onclick="setSetupMode(true)">Create new sheet</button>
+      <button class="btn ${!S.setupNewSheet?'btn-p':'btn-g'} btn-sm" onclick="setSetupMode(false)">Use existing sheet</button>
+    </div>
+    ${S.setupNewSheet?`
+    <input class="inp" type="text" placeholder="Sheet name (e.g. Help Desk Availability Fall 2025)"
+      value="${esc(S.setupSheetName)}" oninput="setSetupName(this.value)">
+    <div style="font-size:11.5px;color:var(--muted2);margin-top:5px">The tool will create a sheet with the correct columns automatically.</div>
+    `:`
+    <input class="inp inp-mono" type="text" placeholder="Sheet ID (numeric, found in the sheet URL)"
+      value="${esc(S.setupSheetId||S.sheetId)}" oninput="setSetupId(this.value)">
+    <div style="font-size:11.5px;color:var(--muted2);margin-top:5px">Sheet must already have the correct columns. Use "Create new sheet" for best results.</div>
+    `}
+  </div>
+
+  <button class="btn btn-p" onclick="runSetup()" ${S.setupWorking?'disabled':''}>
+    ${S.setupWorking?'Connecting…':configured?'Reconnect / Update':'Connect to Smartsheet'}
+  </button>
+</div>
+
+${configured?`
+<div class="card">
+  <div class="sh" style="margin-bottom:14px">Share Link for Students</div>
+  <div class="warn" style="margin-bottom:12px">⚠ This link contains your API token. Only share it with your students — anyone with the link can submit data to your sheet.</div>
+  <p style="font-size:13px;color:var(--muted2);margin-bottom:12px">
+    This link encodes your Smartsheet credentials and operating hours. Students can open it from any device and their submissions will go straight to your sheet.
+  </p>
+  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="btn btn-p" onclick="copyShareUrl()">Copy Share Link</button>
+    <button class="btn btn-g" onclick="refreshShareUrl()">↻ Regenerate</button>
+  </div>
+  ${S.shareUrl?`<div class="share-box">
+    <span class="share-url">${esc(S.shareUrl)}</span>
+  </div>`:''}
+  <div style="font-size:12px;color:var(--muted2);margin-top:14px;line-height:1.7">
+    <strong>To host this tool:</strong> Upload this HTML file to any web host (GitHub Pages, Netlify Drop, your university's web server) and use that URL as the base. Or share the file directly — students can open it locally and still submit to Smartsheet.
+  </div>
+</div>
+`:''}`;
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+(function init(){
+  // URL hash takes priority (student coming in via share link)
+  const fromHash=loadFromHash();
+  // Then fill any gaps from localStorage
+  loadFromLS();
+  render();
+  // If admin has config and is viewing admin tab, load data
+  if(S.view==='admin'&&isConfigured())loadAdminData();
+})();
+</script>
+</body>
+</html>
