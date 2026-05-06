@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help Desk — Availability Form</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
+
+:root {
+  --bg:        #0f1117;
+  --surface:   #181c27;
+  --surface2:  #1e2333;
+  --border:    #252b3b;
+  --border2:   #2d3550;
+  --text:      #e8eaf0;
+  --muted:     #5a6070;
+  --muted2:    #7a8498;
+  --accent:    #ffe566;
+  --accent-dim:rgba(255,229,102,0.12);
+  --can:       #6be09e;
+  --can-dim:   rgba(107,224,158,0.13);
+  --can-bdr:   rgba(107,224,158,0.35);
+  --pref:      #ffe566;
+  --pref-dim:  rgba(255,229,102,0.13);
+  --pref-bdr:  rgba(255,229,102,0.35);
+  --no:        #f96060;
+  --no-dim:    rgba(249,96,96,0.10);
+  --no-bdr:    rgba(249,96,96,0.30);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.hdr {
+  padding: 22px 32px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  background: var(--surface);
+}
+.hdr-left h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px; font-weight: 800; letter-spacing: -0.4px;
+  color: var(--text);
+}
+.hdr-left h1 span { color: var(--accent); }
+.hdr-left p { font-size: 10.5px; color: var(--muted); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+.tab-bar { display: flex; gap: 4px; }
+.tab-btn {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted2); cursor: pointer; transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--text); border-color: var(--border2); }
+.tab-btn.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(255,229,102,0.3); }
+.badge {
+  display: inline-block; background: var(--accent); color: var(--bg);
+  font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 10px; margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* ── Layout ── */
+.main { padding: 28px 32px 56px; max-width: 1080px; }
+
+.sec-hd {
+  font-family: 'Syne', sans-serif; font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+}
+.sec-hd::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.section { margin-bottom: 32px; }
+
+/* ── Name input ── */
+.name-input {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  padding: 10px 14px; border-radius: 8px; outline: none;
+  width: 320px; max-width: 100%; transition: border-color 0.15s;
+}
+.name-input:focus { border-color: var(--accent); }
+.name-input::placeholder { color: var(--muted); font-weight: 600; }
+
+/* ── Legend ── */
+.legend { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+.leg-item { display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
+.leg-dot { width: 14px; height: 14px; border-radius: 3px; }
+
+/* ── Bulk entry ── */
+.bulk-bar {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding: 12px 14px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; margin-bottom: 18px;
+}
+.bulk-bar label { font-size: 10.5px; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.06em; }
+.bulk-select, .bulk-time {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  padding: 5px 9px; border-radius: 6px; outline: none;
+}
+.bulk-select { cursor: pointer; }
+.bulk-time { width: 120px; }
+.bulk-sep { color: var(--muted); font-size: 12px; }
+.bulk-status {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  padding: 5px 9px; border-radius: 6px; outline: none; cursor: pointer;
+}
+.bulk-btn {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.05em; padding: 6px 16px; border-radius: 6px; border: none;
+  background: var(--accent); color: var(--bg); cursor: pointer; transition: all 0.15s;
+}
+.bulk-btn:hover { opacity: 0.88; }
+.bulk-clear {
+  font-family: 'Syne', sans-serif; font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.05em; padding: 6px 14px; border-radius: 6px;
+  border: 1px solid var(--border2); background: transparent; color: var(--muted2); cursor: pointer; transition: all 0.15s;
+}
+.bulk-clear:hover { color: var(--text); border-color: var(--muted2); }
+
+/* ── Grid ── */
+.grid-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table.avail-table { border-collapse: collapse; width: 100%; min-width: 560px; }
+table.avail-table thead th {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted2); padding: 10px 10px;
+  background: var(--surface); border-bottom: 1px solid var(--border); text-align: left;
+}
+table.avail-table thead th:first-child { color: var(--accent); width: 76px; }
+table.avail-table tbody tr { border-bottom: 1px solid var(--border); }
+table.avail-table tbody tr:last-child { border-bottom: none; }
+table.avail-table tbody tr:hover { background: rgba(255,255,255,0.015); }
+table.avail-table tbody tr.on-hour td { border-top: 1px solid var(--border2); }
+td.time-col {
+  font-size: 10.5px; color: var(--accent); font-weight: 500;
+  padding: 0 10px; white-space: nowrap; background: var(--surface);
+  letter-spacing: 0.04em;
+}
+td.slot-col { padding: 3px 4px; border-right: 1px solid var(--border); }
+td.slot-col:last-child { border-right: none; }
+td.slot-col.closed { background: rgba(0,0,0,0.2); }
+
+button.slot-btn {
+  width: 100%; min-width: 80px; height: 28px;
+  border-radius: 5px; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
+  color: var(--muted); display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s; user-select: none;
+}
+button.slot-btn:hover { border-color: var(--border2); filter: brightness(1.2); }
+button.slot-btn.can  { background: var(--can-dim);  border-color: var(--can-bdr);  color: var(--can);  }
+button.slot-btn.pref { background: var(--pref-dim); border-color: var(--pref-bdr); color: var(--pref); }
+button.slot-btn.no   { background: var(--no-dim);   border-color: var(--no-bdr);   color: var(--no);   }
+
+/* ── Submit ── */
+.submit-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.submit-btn {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+  letter-spacing: 0.04em; padding: 10px 28px; border-radius: 8px; border: none;
+  background: var(--accent); color: var(--bg); cursor: pointer; transition: all 0.15s;
+}
+.submit-btn:hover { opacity: 0.88; }
+.submit-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.submit-note { font-size: 11px; color: var(--muted2); }
+
+/* ── Success ── */
+.success-box {
+  background: var(--can-dim); border: 1px solid var(--can-bdr);
+  border-radius: 10px; padding: 28px 24px; text-align: center; margin-top: 8px;
+}
+.success-box h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--can); margin-bottom: 8px; }
+.success-box p { font-size: 12.5px; color: var(--muted2); }
+.success-stats { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.stat-pill { font-size: 11px; letter-spacing: 0.05em; padding: 3px 10px; border-radius: 4px; border: 1px solid; }
+.stat-pill.can  { color: var(--can);  background: var(--can-dim);  border-color: var(--can-bdr);  }
+.stat-pill.pref { color: var(--pref); background: var(--pref-dim); border-color: var(--pref-bdr); }
+.stat-pill.no   { color: var(--no);   background: var(--no-dim);   border-color: var(--no-bdr);   }
+.another-btn {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  margin-top: 18px; padding: 7px 18px; border-radius: 6px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted2); cursor: pointer; transition: all 0.15s;
+}
+.another-btn:hover { color: var(--text); border-color: var(--muted2); }
+
+/* ── Notes ── */
+.notes-textarea {
+  width: 100%; background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'DM Mono', monospace; font-size: 12.5px;
+  padding: 10px 12px; border-radius: 8px; outline: none; resize: vertical;
+  min-height: 80px; line-height: 1.6; transition: border-color 0.15s;
+}
+.notes-textarea:focus { border-color: var(--accent); }
+.notes-textarea::placeholder { color: var(--muted); }
+.notes-display {
+  font-size: 11.5px; color: var(--muted2); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; margin-top: 6px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word; width: 100%;
+}
+.resp-card-inner { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+
+/* ── Admin tabs ── */
+.admin-tabs { display: flex; gap: 4px; margin-bottom: 22px; flex-wrap: wrap; }
+.admin-tab {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 7px 16px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted2); cursor: pointer; transition: all 0.15s;
+}
+.admin-tab:hover { color: var(--text); border-color: var(--border2); }
+.admin-tab.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(255,229,102,0.3); }
+
+/* ── Responses ── */
+.resp-list { display: flex; flex-direction: column; gap: 6px; }
+.resp-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 11px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.resp-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; flex: 1; min-width: 120px; }
+.resp-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.resp-pill { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 3px; border: 1px solid; letter-spacing: 0.04em; }
+.resp-pill.can  { color: var(--can);  background: var(--can-dim);  border-color: var(--can-bdr);  }
+.resp-pill.pref { color: var(--pref); background: var(--pref-dim); border-color: var(--pref-bdr); }
+.resp-pill.no   { color: var(--no);   background: var(--no-dim);   border-color: var(--no-bdr);   }
+.resp-date { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.del-btn {
+  background: none; border: 1px solid rgba(249,96,96,0.25); color: var(--no);
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  padding: 4px 10px; border-radius: 5px; cursor: pointer; transition: all 0.15s;
+}
+.del-btn:hover { background: var(--no-dim); }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.tool-btn {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted2); cursor: pointer; transition: all 0.15s;
+}
+.tool-btn:hover { color: var(--text); border-color: var(--muted2); }
+.tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.tool-note { font-size: 10.5px; color: var(--muted); }
+
+/* ── Heatmap ── */
+.heat-pip {
+  height: 26px; min-width: 80px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500;
+}
+
+/* ── Hours config ── */
+.hours-grid { display: flex; flex-direction: column; gap: 6px; }
+.hours-row {
+  display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px;
+  padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.hours-row.off { opacity: 0.4; }
+.day-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.tog-track {
+  width: 30px; height: 16px; border-radius: 8px; background: var(--border2);
+  position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.tog-track.on { background: var(--can); }
+.tog-track::after {
+  content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  background: white; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.tog-track.on::after { left: 16px; }
+.day-name-lbl { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text); }
+.time-pair { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.time-pair label { font-size: 10px; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.06em; width: 36px; }
+input[type="time"] {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  padding: 5px 8px; border-radius: 6px; outline: none; width: 112px;
+}
+input[type="time"]:focus { border-color: var(--accent); }
+.time-arrow { color: var(--muted); margin: 0 4px; font-size: 13px; }
+.time-ampm { font-size: 11px; color: var(--muted); min-width: 64px; }
+.season-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+.season-input {
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  padding: 8px 12px; border-radius: 7px; outline: none; width: 260px;
+}
+.season-input:focus { border-color: var(--accent); }
+.season-note { font-size: 10.5px; color: var(--muted); }
+
+/* ── Empty states ── */
+.empty-box {
+  padding: 32px; text-align: center; color: var(--muted);
+  border: 1px dashed var(--border); border-radius: 10px;
+}
+.empty-box strong { display: block; font-family: 'Syne', sans-serif; font-size: 14px; color: var(--muted2); margin-bottom: 5px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+  font-size: 12.5px; font-weight: 500; padding: 10px 18px; border-radius: 8px;
+  z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.toast.show { opacity: 1; }
+</style>
+<!-- Firebase (compat build — works in plain HTML files, no build tools needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════
+   FIREBASE INIT
+════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyCQHXoptmi9H7IP1AMunqyqRZ6daX99Of0",
+  authDomain:        "helpdesk-availability.firebaseapp.com",
+  databaseURL:       "https://helpdesk-availability-default-rtdb.firebaseio.com",
+  projectId:         "helpdesk-availability",
+  storageBucket:     "helpdesk-availability.firebasestorage.app",
+  messagingSenderId: "489311833282",
+  appId:             "1:489311833282:web:8cb85720d25ef7bea53f5b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ════════════════════════════════
+   CONSTANTS
+════════════════════════════════ */
+const ALL_DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const DAY_S = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri', saturday:'Sat', sunday:'Sun' };
+const DAY_F = { monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday', thursday:'Thursday', friday:'Friday', saturday:'Saturday', sunday:'Sunday' };
+
+const STATES = ['', 'can', 'pref', 'no'];
+const STATE_ICON  = { '': '·', can: '✓', pref: '★', no: '✕' };
+const STATE_LABEL = { '': 'Not set', can: 'Can Work', pref: 'Prefer', no: "Can't Work" };
+
+const DEFAULT_HOURS = {
+  monday:    { on: true,  open: '07:30', close: '20:00' },
+  tuesday:   { on: true,  open: '07:30', close: '20:00' },
+  wednesday: { on: true,  open: '07:30', close: '20:00' },
+  thursday:  { on: true,  open: '07:30', close: '20:00' },
+  friday:    { on: true,  open: '07:30', close: '18:00' },
+  saturday:  { on: false, open: '10:00', close: '16:00' },
+  sunday:    { on: false, open: '10:00', close: '14:00' },
+};
+
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+const S = {
+  view:         'form',
+  adminTab:     'responses',
+  name:         '',
+  notes:        '',
+  avail:        {},
+  submitted:    false,
+  responses:    {},
+  hours:        clone(DEFAULT_HOURS),
+  seasonLabel:  'Academic Year 2025–26',
+  bulkDay:      'all',
+  bulkStart:    '09:00',
+  bulkEnd:      '17:00',
+  bulkStatus:   'can',
+  // loading flags
+  appLoading:   true,
+  respLoading:  false,
+  saveError:    null,
+};
+
+/* ════════════════════════════════
+   FIREBASE STORAGE
+════════════════════════════════ */
+
+// Safe Firebase key — strips characters Firebase doesn't allow in keys
+function fbKey(name) {
+  return name.trim().replace(/[.#$[\]/]/g, '_');
+}
+
+// Save a single response to Firebase
+async function saveResponse(name, data) {
+  await db.ref('responses/' + fbKey(name)).set(data);
+}
+
+// Delete a single response from Firebase
+async function deleteResponseFb(name) {
+  await db.ref('responses/' + fbKey(name)).remove();
+}
+
+// Delete all responses from Firebase
+async function deleteAllResponsesFb() {
+  await db.ref('responses').remove();
+}
+
+// Load all responses from Firebase into S.responses
+async function loadResponses() {
+  const snap = await db.ref('responses').once('value');
+  const raw = snap.val() || {};
+  // Rebuild keyed by display name (not Firebase key)
+  S.responses = {};
+  Object.values(raw).forEach(r => { if (r && r.name) S.responses[r.name] = r; });
+}
+
+// Save config to Firebase and also cache locally for fast startup
+async function saveConfig() {
+  const cfg = { hours: S.hours, seasonLabel: S.seasonLabel };
+  await db.ref('config').set(cfg);
+  try { localStorage.setItem('hd_cfg_cache', JSON.stringify(cfg)); } catch(e) {}
+}
+
+// Load config — Firebase first, fall back to local cache
+async function loadConfig() {
+  try {
+    const snap = await db.ref('config').once('value');
+    const data = snap.val();
+    if (data) {
+      if (data.hours)       S.hours       = data.hours;
+      if (data.seasonLabel) S.seasonLabel = data.seasonLabel;
+      try { localStorage.setItem('hd_cfg_cache', JSON.stringify(data)); } catch(e) {}
+      return;
+    }
+  } catch(e) {}
+  // Fall back to local cache if Firebase unreachable
+  try {
+    const v = localStorage.getItem('hd_cfg_cache');
+    if (v) { const o = JSON.parse(v); if (o.hours) S.hours = o.hours; if (o.seasonLabel) S.seasonLabel = o.seasonLabel; }
+  } catch(e) {}
+}
+
+/* ════════════════════════════════
+   UTILITIES
+════════════════════════════════ */
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function pTime(str) {
+  if (!str) return 0;
+  const [h, m] = str.split(':').map(Number);
+  return h * 60 + (m || 0);
+}
+function fTime(mins) {
+  return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+}
+function fAMPM(mins) {
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM');
+}
+function t2ap(str) { return str ? fAMPM(pTime(str)) : ''; }
+function slotKey(day, mins) { return day + '_' + fTime(mins); }
+
+function activeDays() { return ALL_DAYS.filter(d => S.hours[d] && S.hours[d].on); }
+
+function buildSlots() {
+  const days = activeDays();
+  if (!days.length) return { slots: [], days: [] };
+  const opens  = days.map(d => pTime(S.hours[d].open));
+  const closes = days.map(d => pTime(S.hours[d].close));
+  const minT = Math.min(...opens), maxT = Math.max(...closes);
+  const slots = [];
+  for (let t = minT; t < maxT; t += 30) slots.push(t);
+  return { slots, days };
+}
+
+function countStats(name) {
+  const vals = Object.values(S.responses[name]?.avail || {});
+  return {
+    can:  vals.filter(v => v === 'can').length,
+    pref: vals.filter(v => v === 'pref').length,
+    no:   vals.filter(v => v === 'no').length,
+  };
+}
+
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  catch(e) { return ''; }
+}
+
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function csvq(s) { s = String(s || ''); return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ════════════════════════════════
+   HANDLERS
+════════════════════════════════ */
+window.switchView = async function(v) {
+  S.view = v;
+  if (v === 'admin' && S.adminTab === 'responses') await refreshResponses();
+  else render();
+};
+
+window.switchTab = async function(t) {
+  S.adminTab = t;
+  if (t === 'responses') await refreshResponses();
+  else render();
+};
+
+window.refreshResponses = refreshResponses;
+
+async function refreshResponses() {
+  S.respLoading = true;
+  render();
+  try {
+    await loadResponses();
+  } catch(e) {
+    console.error('Failed to load responses:', e);
+  }
+  S.respLoading = false;
+  render();
+}
+
+window.setName  = function(v) { S.name  = v; };
+window.setNotes = function(v) { S.notes = v; };
+
+window.cycleSlot = function(key) {
+  const cur = S.avail[key] || '';
+  S.avail[key] = STATES[(STATES.indexOf(cur) + 1) % STATES.length];
+  const btn = document.querySelector('[data-slot="' + key + '"]');
+  if (btn) {
+    const val = S.avail[key];
+    btn.className = 'slot-btn ' + (val || '');
+    btn.textContent = STATE_ICON[val];
+    btn.title = fAMPM(pTime(key.split('_')[1])) + ' — ' + STATE_LABEL[val];
+  }
+};
+
+window.setBulkDay    = function(v) { S.bulkDay    = v; };
+window.setBulkStart  = function(v) { S.bulkStart  = v; };
+window.setBulkEnd    = function(v) { S.bulkEnd    = v; };
+window.setBulkStatus = function(v) { S.bulkStatus = v; };
+
+window.applyBulk = function() {
+  const start = pTime(S.bulkStart);
+  const end   = pTime(S.bulkEnd);
+  if (start >= end) { alert('End time must be after start time.'); return; }
+  const days = S.bulkDay === 'all' ? activeDays() : [S.bulkDay];
+  days.forEach(day => {
+    const h = S.hours[day];
+    for (let t = Math.max(start, pTime(h.open)); t < Math.min(end, pTime(h.close)); t += 30) {
+      S.avail[slotKey(day, t)] = S.bulkStatus;
+    }
+  });
+  render();
+  toast('Applied ' + STATE_LABEL[S.bulkStatus] + ' to ' + (S.bulkDay === 'all' ? 'all days' : DAY_F[S.bulkDay]));
+};
+
+window.clearGrid = function() { S.avail = {}; render(); };
+
+window.submitForm = async function() {
+  const name = S.name.trim();
+  if (!name) { alert('Please enter your name first.'); return; }
+  S.saveError = null;
+  // Optimistically show success
+  const entry = { name, avail: clone(S.avail), notes: S.notes.trim(), submittedAt: new Date().toISOString() };
+  try {
+    await saveResponse(name, entry);
+    S.submitted = true;
+    render();
+    toast('Saved — ' + name);
+  } catch(e) {
+    S.saveError = 'Could not save — check your connection and try again.';
+    render();
+  }
+};
+
+window.resetForm = function() {
+  S.name = ''; S.notes = ''; S.avail = {}; S.submitted = false; S.saveError = null;
+  render();
+};
+
+window.deleteResponse = async function(btn) {
+  const name = btn.getAttribute('data-name');
+  if (!confirm('Delete ' + name + "'s submission?")) return;
+  try {
+    await deleteResponseFb(name);
+    delete S.responses[name];
+    render();
+    toast('Removed ' + name);
+  } catch(e) {
+    alert('Error deleting — check your connection.');
+  }
+};
+
+window.clearAllResponses = async function() {
+  if (!confirm('Delete ALL responses? This cannot be undone.')) return;
+  try {
+    await deleteAllResponsesFb();
+    S.responses = {};
+    render();
+    toast('All responses cleared');
+  } catch(e) {
+    alert('Error clearing — check your connection.');
+  }
+};
+
+window.toggleDay = async function(day) {
+  S.hours[day].on = !S.hours[day].on;
+  render();
+  await saveConfig();
+};
+window.setOpen = async function(day, v) {
+  S.hours[day].open = v;
+  render();
+  await saveConfig();
+};
+window.setClose = async function(day, v) {
+  S.hours[day].close = v;
+  render();
+  await saveConfig();
+};
+window.setSeason = function(v) {
+  S.seasonLabel = v;
+  saveConfig();  // fire-and-forget on typing
+};
+
+window.exportCSV = function() {
+  const { slots, days } = buildSlots();
+  const names = Object.keys(S.responses);
+  if (!names.length) return;
+  const hdr = ['Student', 'Notes', ...slots.flatMap(t => days.map(d => DAY_S[d] + ' ' + fAMPM(t)))];
+  const rows = names.map(n => {
+    const av = S.responses[n].avail || {};
+    const notes = S.responses[n].notes || '';
+    return [csvq(n), csvq(notes), ...slots.flatMap(t => days.map(d => {
+      const v = av[slotKey(d, t)] || '';
+      return v === 'can' ? 'C' : v === 'pref' ? 'P' : v === 'no' ? 'N' : '';
+    }))];
+  });
+  dlCSV([hdr, ...rows].map(r => r.join(',')).join('\n'), 'availability');
+};
+
+window.exportHeatmapCSV = function() {
+  const { slots, days } = buildSlots();
+  const names = Object.keys(S.responses);
+  if (!names.length) return;
+  const hdr = ['Time', ...days.map(d => DAY_F[d])];
+  const rows = slots.map(t => {
+    const row = [fAMPM(t)];
+    days.forEach(d => {
+      const h = S.hours[d];
+      const inW = pTime(h.open) <= t && t < pTime(h.close);
+      if (!inW) { row.push('closed'); return; }
+      const key = slotKey(d, t);
+      const c  = names.filter(n => S.responses[n]?.avail?.[key] === 'can').length;
+      const p  = names.filter(n => S.responses[n]?.avail?.[key] === 'pref').length;
+      const no = names.filter(n => S.responses[n]?.avail?.[key] === 'no').length;
+      row.push(c + 'C/' + p + 'P/' + no + 'N');
+    });
+    return row;
+  });
+  dlCSV([hdr, ...rows].map(r => r.join(',')).join('\n'), 'heatmap');
+};
+
+function dlCSV(csv, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = name + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+}
+
+/* ════════════════════════════════
+   RENDER
+════════════════════════════════ */
+function render() {
+  try {
+    if (S.appLoading) {
+      document.getElementById('app').innerHTML = `
+<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px">
+  <div style="width:28px;height:28px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2)">Connecting…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+      return;
+    }
+    document.getElementById('app').innerHTML = buildPage();
+  } catch(err) {
+    document.getElementById('app').innerHTML =
+      '<div style="padding:24px;color:#f96060;font-family:monospace">Error: ' + esc(err.message) + '</div>';
+    console.error(err);
+  }
+}
+
+function buildPage() {
+  const rc = Object.keys(S.responses).length;
+  return `
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Help Desk <span>Availability</span></h1>
+    <p>${esc(S.seasonLabel)} &nbsp;·&nbsp; Adelphi University IT</p>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn ${S.view === 'form'  ? 'active' : ''}" onclick="switchView('form')">My Availability</button>
+    <button class="tab-btn ${S.view === 'admin' ? 'active' : ''}" onclick="switchView('admin')">
+      Admin${rc ? '<span class="badge">' + rc + '</span>' : ''}
+    </button>
+  </div>
+</div>
+<div class="main">
+  ${S.view === 'form' ? buildForm() : buildAdmin()}
+</div>`;
+}
+
+/* ── Student form ───────────────────────── */
+function buildForm() {
+  if (S.submitted) return buildSuccess();
+  const { slots, days } = buildSlots();
+  if (!days.length) return '<div class="empty-box"><strong>No days configured</strong>An admin needs to set up office hours first.</div>';
+
+  return `
+<div class="section">
+  <div class="sec-hd">Your Name</div>
+  <input class="name-input" type="text" placeholder="First Last"
+    value="${esc(S.name)}" oninput="setName(this.value)" autocomplete="name">
+</div>
+
+<div class="section">
+  <div class="sec-hd">Availability</div>
+
+  <div class="legend">
+    <div class="leg-item">
+      <div class="leg-dot" style="background:var(--can-dim);border:1px solid var(--can-bdr)"></div>
+      <span style="color:var(--can)">✓ Can Work</span>
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:var(--pref-dim);border:1px solid var(--pref-bdr)"></div>
+      <span style="color:var(--pref)">★ Prefer to Work</span>
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:var(--no-dim);border:1px solid var(--no-bdr)"></div>
+      <span style="color:var(--no)">✕ Can't Work</span>
+    </div>
+    <span style="font-size:10.5px;color:var(--muted)">· = not marked &nbsp;|&nbsp; click a cell to cycle through states</span>
+  </div>
+
+  <div class="bulk-bar">
+    <label>Fill</label>
+    <select class="bulk-select" onchange="setBulkDay(this.value)">
+      <option value="all">All days</option>
+      ${activeDays().map(d => `<option value="${d}" ${S.bulkDay === d ? 'selected' : ''}>${DAY_F[d]}</option>`).join('')}
+    </select>
+    <label>from</label>
+    <input class="bulk-time" type="time" value="${S.bulkStart}" onchange="setBulkStart(this.value)">
+    <span class="bulk-sep">→</span>
+    <input class="bulk-time" type="time" value="${S.bulkEnd}" onchange="setBulkEnd(this.value)">
+    <label>as</label>
+    <select class="bulk-status" onchange="setBulkStatus(this.value)">
+      <option value="can"  ${S.bulkStatus === 'can'  ? 'selected' : ''}>✓ Can Work</option>
+      <option value="pref" ${S.bulkStatus === 'pref' ? 'selected' : ''}>★ Prefer</option>
+      <option value="no"   ${S.bulkStatus === 'no'   ? 'selected' : ''}>✕ Can't Work</option>
+    </select>
+    <button class="bulk-btn" onclick="applyBulk()">Apply</button>
+    <button class="bulk-clear" onclick="clearGrid()">Clear All</button>
+  </div>
+
+  ${buildGrid(slots, days)}
+</div>
+
+<div class="section">
+  <div class="sec-hd">Notes</div>
+  <textarea class="notes-textarea"
+    placeholder="Anything we should know — vacation days, public transit constraints, class schedule conflicts, etc."
+    oninput="setNotes(this.value)">${esc(S.notes)}</textarea>
+</div>
+
+<div class="submit-row">
+  ${S.saveError ? `<div style="width:100%;padding:8px 12px;background:var(--no-dim);border:1px solid var(--no-bdr);border-radius:6px;color:var(--no);font-size:12px;margin-bottom:6px">${esc(S.saveError)}</div>` : ''}
+  <button class="submit-btn" onclick="submitForm()" ${!S.name.trim() ? 'disabled' : ''}>
+    Submit Availability
+  </button>
+  <span class="submit-note">You can resubmit anytime to update your entry.</span>
+</div>`;
+}
+
+function buildGrid(slots, days) {
+  const colHdrs = days.map(d => `
+<th>${DAY_S[d]}<br>
+  <span style="font-weight:400;font-size:9.5px;color:var(--muted)">
+    ${t2ap(S.hours[d].open)}–${t2ap(S.hours[d].close)}
+  </span>
+</th>`).join('');
+
+  const rows = slots.map(t => {
+    const onHour = t % 60 === 0;
+    const label  = onHour ? fAMPM(t) : '';
+    const cells  = days.map(d => {
+      const h    = S.hours[d];
+      const inW  = pTime(h.open) <= t && t < pTime(h.close);
+      if (!inW) return '<td class="slot-col closed"></td>';
+      const key  = slotKey(d, t);
+      const val  = S.avail[key] || '';
+      return `<td class="slot-col">
+  <button class="slot-btn ${val}"
+    data-slot="${key}"
+    onclick="cycleSlot('${key}')"
+    title="${fAMPM(t)} — ${STATE_LABEL[val]}">${STATE_ICON[val]}</button>
+</td>`;
+    }).join('');
+
+    return `<tr class="${onHour ? 'on-hour' : ''}">
+  <td class="time-col">${label}</td>
+  ${cells}
+</tr>`;
+  }).join('');
+
+  return `
+<div class="grid-wrap">
+  <table class="avail-table">
+    <thead><tr><th>Time</th>${colHdrs}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+function buildSuccess() {
+  const stats = countStats(S.name.trim());
+  return `
+<div class="success-box">
+  <h2>✓ Submitted!</h2>
+  <p>Thanks, <strong style="color:var(--can)">${esc(S.name)}</strong> — your availability has been saved.</p>
+  <div class="success-stats">
+    <span class="stat-pill can">✓ ${stats.can} can work</span>
+    <span class="stat-pill pref">★ ${stats.pref} preferred</span>
+    <span class="stat-pill no">✕ ${stats.no} can't work</span>
+  </div>
+  <button class="another-btn" onclick="resetForm()">Submit for another person</button>
+</div>`;
+}
+
+/* ── Admin ──────────────────────────────── */
+function buildAdmin() {
+  return `
+<div class="admin-tabs">
+  <button class="admin-tab ${S.adminTab === 'responses' ? 'active' : ''}" onclick="switchTab('responses')">
+    Responses (${Object.keys(S.responses).length})
+  </button>
+  <button class="admin-tab ${S.adminTab === 'heatmap' ? 'active' : ''}" onclick="switchTab('heatmap')">
+    Coverage Heatmap
+  </button>
+  <button class="admin-tab ${S.adminTab === 'config' ? 'active' : ''}" onclick="switchTab('config')">
+    Office Hours
+  </button>
+</div>
+${S.adminTab === 'responses' ? buildResponses() : ''}
+${S.adminTab === 'heatmap'   ? buildHeatmap()   : ''}
+${S.adminTab === 'config'    ? buildConfig()    : ''}`;
+}
+
+function buildResponses() {
+  if (S.respLoading) return `
+<div style="display:flex;align-items:center;gap:12px;padding:40px;color:var(--muted2);font-size:12px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase">
+  <div style="width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></div>
+  Loading responses…
+</div>`;
+  const names = Object.keys(S.responses);
+  return `
+<div class="toolbar">
+  <button class="tool-btn" onclick="refreshResponses()">↻ Refresh</button>
+  <button class="tool-btn" onclick="exportCSV()" ${!names.length ? 'disabled' : ''}>↓ Export CSV</button>
+  <span class="tool-note">C = Can Work &nbsp;·&nbsp; P = Prefer &nbsp;·&nbsp; N = Can't Work</span>
+</div>
+${!names.length
+  ? '<div class="empty-box"><strong>No submissions yet</strong>Switch to My Availability and have students fill out the form.</div>'
+  : `<div class="resp-list">
+${names.map(n => {
+    const st = countStats(n);
+    const notes = S.responses[n].notes || '';
+    return `<div class="resp-card">
+  <div class="resp-card-inner">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="resp-name">${esc(n)}</div>
+      <div class="resp-pills">
+        <span class="resp-pill can">✓ ${st.can}</span>
+        <span class="resp-pill pref">★ ${st.pref}</span>
+        <span class="resp-pill no">✕ ${st.no}</span>
+      </div>
+      <div class="resp-date">${fmtDate(S.responses[n].submittedAt)}</div>
+    </div>
+    ${notes ? `<div class="notes-display">${esc(notes)}</div>` : ''}
+  </div>
+  <button class="del-btn" data-name="${esc(n)}" onclick="deleteResponse(this)">Remove</button>
+</div>`;
+  }).join('')}
+</div>
+<div style="margin-top:14px">
+  <button class="tool-btn" onclick="clearAllResponses()">Clear All Responses</button>
+</div>`}`;
+}
+
+function buildHeatmap() {
+  const { slots, days } = buildSlots();
+  const names = Object.keys(S.responses);
+  const total = names.length;
+
+  return `
+<div class="toolbar">
+  <button class="tool-btn" onclick="exportHeatmapCSV()" ${!total ? 'disabled' : ''}>↓ Export CSV</button>
+  <span class="tool-note">${total ? total + ' response' + (total !== 1 ? 's' : '') + ' — color shows availability density' : 'No responses yet'}</span>
+</div>
+${!total
+  ? '<div class="empty-box"><strong>No data yet</strong>Heatmap populates after students submit.</div>'
+  : `<div class="grid-wrap">
+<table class="avail-table">
+  <thead><tr>
+    <th>Time</th>
+    ${days.map(d => `<th>${DAY_S[d]}<br><span style="font-weight:400;font-size:9.5px;color:var(--muted)">${t2ap(S.hours[d].open)}–${t2ap(S.hours[d].close)}</span></th>`).join('')}
+  </tr></thead>
+  <tbody>
+${slots.map(t => {
+  const onHour = t % 60 === 0;
+  return `<tr class="${onHour ? 'on-hour' : ''}">
+  <td class="time-col">${onHour ? fAMPM(t) : ''}</td>
+  ${days.map(d => {
+    const h   = S.hours[d];
+    const inW = pTime(h.open) <= t && t < pTime(h.close);
+    if (!inW) return '<td class="slot-col closed"><div class="heat-pip" style="min-width:80px"></div></td>';
+    const key = slotKey(d, t);
+    const c  = names.filter(n => S.responses[n]?.avail?.[key] === 'can').length;
+    const p  = names.filter(n => S.responses[n]?.avail?.[key] === 'pref').length;
+    const no = names.filter(n => S.responses[n]?.avail?.[key] === 'no').length;
+    const avail = c + p;
+    const pct   = avail / total;
+    const bg  = pct === 0 ? 'transparent'
+      : p > c  ? `rgba(255,229,102,${.08 + pct * .42})`
+      :          `rgba(107,224,158,${.07 + pct * .45})`;
+    const col = pct === 0 ? 'var(--muted)' : p > c ? 'var(--pref)' : 'var(--can)';
+    const lbl = avail === 0 ? '—'
+      : avail + (no > 0 ? ` <span style="color:var(--no);font-size:9.5px;opacity:.7">${no}✕</span>` : '');
+    return `<td class="slot-col">
+  <div class="heat-pip" style="background:${bg};color:${col};min-width:80px"
+    title="${c} can work, ${p} prefer, ${no} can't — out of ${total}">${lbl}</div>
+</td>`;
+  }).join('')}
+</tr>`;
+}).join('')}
+  </tbody>
+</table>
+</div>`}`;
+}
+
+function buildConfig() {
+  return `
+<div class="section">
+  <div class="sec-hd">Season / Semester Label</div>
+  <div class="season-row">
+    <input class="season-input" type="text"
+      placeholder="e.g. Fall 2025, Summer Session..."
+      value="${esc(S.seasonLabel)}"
+      oninput="setSeason(this.value)">
+    <span class="season-note">Shown in the header — helps distinguish different semester setups</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hd">Office Hours</div>
+  <div style="font-size:11px;color:var(--muted2);margin-bottom:14px">
+    Changes save automatically and update what students see on the form.
+    Toggle a day off to remove it from the grid entirely.
+  </div>
+  <div class="hours-grid">
+${ALL_DAYS.map(day => {
+  const h = S.hours[day];
+  return `
+<div class="hours-row ${h.on ? '' : 'off'}">
+  <label class="day-toggle" onclick="toggleDay('${day}')">
+    <div class="tog-track ${h.on ? 'on' : ''}"></div>
+    <span class="day-name-lbl">${DAY_S[day]}</span>
+  </label>
+  <div class="time-pair" style="${h.on ? '' : 'opacity:.3;pointer-events:none'}">
+    <label>Open</label>
+    <input type="time" value="${h.open}"  onchange="setOpen('${day}', this.value)">
+    <span class="time-ampm">${t2ap(h.open)}</span>
+    <span class="time-arrow">→</span>
+    <label>Close</label>
+    <input type="time" value="${h.close}" onchange="setClose('${day}', this.value)">
+    <span class="time-ampm">${t2ap(h.close)}</span>
+  </div>
+</div>`;
+}).join('')}
+  </div>
+</div>`;
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+async function init() {
+  S.appLoading = true;
+  render();
+  await loadConfig();
+  S.appLoading = false;
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
