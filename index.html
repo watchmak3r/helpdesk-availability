@@ -372,8 +372,8 @@ const S = {
   hours:        clone(DEFAULT_HOURS),
   seasonLabel:  'Academic Year 2025–26',
   bulkDay:      'all',
-  bulkStart:    '7:00',
-  bulkEnd:      '20:00',
+  bulkStart:    '09:00',
+  bulkEnd:      '17:00',
   bulkStatus:   'can',
   // loading flags
   appLoading:   true,
@@ -831,7 +831,12 @@ function buildGrid(slots, days) {
 }
 
 function buildSuccess() {
-  const stats = countStats(S.name.trim());
+  const vals = Object.values(S.avail);
+  const stats = {
+    can:  vals.filter(v => v === 'can').length,
+    pref: vals.filter(v => v === 'pref').length,
+    no:   vals.filter(v => v === 'no').length,
+  };
   return `
 <div class="success-box">
   <h2>✓ Submitted!</h2>
